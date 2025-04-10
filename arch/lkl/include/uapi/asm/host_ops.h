@@ -57,78 +57,81 @@ enum lkl_prot {
  * These operations must be provided by a host library or by the application
  * itself.
  *
- * @virtio_devices - string containg the list of virtio devices in virtio mmio
- * command line format. This string is appended to the kernel command line and
- * is provided here for convenience to be implemented by the host library.
+ * @virtio_devices - (optional) string containg the list of virtio devices in
+ * virtio mmio command line format; this string is appended to the kernel
+ * command line and is provided here for convenience to be implemented by the
+ * host library
  *
- * @print - optional operation that receives console messages
+ * @print - (optional) print console messages
  *
- * @panic - called during a kernel panic
+ * @panic - (required) cause a kernel panic
  *
- * @sem_alloc - allocate a host semaphore an initialize it to count
- * @sem_free - free a host semaphore
- * @sem_up - perform an up operation on the semaphore
- * @sem_down - perform a down operation on the semaphore
+ * @sem_alloc - (required) allocate a host semaphore an initialize it to count
+ * @sem_free - (required) free a host semaphore
+ * @sem_up - (required) perform an up operation on the semaphore
+ * @sem_down - (required) perform a down operation on the semaphore
  *
- * @mutex_alloc - allocate and initialize a host mutex; the recursive parameter
- * determines if the mutex is recursive or not
- * @mutex_free - free a host mutex
- * @mutex_lock - acquire the mutex
- * @mutex_unlock - release the mutex
+ * @mutex_alloc - (required) allocate and initialize a host mutex; the recursive
+ * parameter determines if the mutex is recursive or not
+ * @mutex_free - (required) free a host mutex
+ * @mutex_lock - (required) acquire the mutex
+ * @mutex_unlock - (required) release the mutex
  *
- * @thread_create - create a new thread and run f(arg) in its context; returns a
- * thread handle or 0 if the thread could not be created
- * @thread_detach - on POSIX systems, free up resources held by
- * pthreads. Noop on Win32.
- * @thread_exit - terminates the current thread
- * @thread_join - wait for the given thread to terminate. Returns 0
+ * @thread_create - (required) create a new thread and run f(arg) in its context;
+ * returns a thread handle or 0 if the thread could not be created
+ * @thread_detach - (required) on POSIX systems, free up resources held by
+ * pthreads; noop on Win32
+ * @thread_exit - (required) terminates the current thread
+ * @thread_join - (required) wait for the given thread to terminate; returns 0
  * for success, -1 otherwise
- * @thread_stack - get the thread stack base and size of the current thread
+ * @thread_stack - (optional) get the thread stack base and size of the current
+ * thread
  *
- * @tls_alloc - allocate a thread local storage key; returns 0 if successful; if
- * destructor is not NULL it will be called when a thread terminates with its
- * argument set to the current thread local storage value
- * @tls_free - frees a thread local storage key; returns 0 if succesful
- * @tls_set - associate data to the thread local storage key; returns 0 if
+ * @tls_alloc - (optional) allocate a thread local storage key; returns 0 if
+ * successful; if destructor is not NULL it will be called when a thread
+ * terminates with its argument set to the current thread local storage value
+ * @tls_free - (optional) frees a thread local storage key; returns 0 if
  * successful
- * @tls_get - return data associated with the thread local storage key or NULL
- * on error
+ * @tls_set - (optional) associate data to the thread local storage key;
+ * returns 0 if successful
+ * @tls_get - (optional) return data associated with the thread local storage
+ * key or NULL on error
  *
- * @mem_alloc - allocate memory
- * @mem_free - free memory
- * @page_alloc - allocate page aligned memory
- * @page_free - free memory allocated by page_alloc
+ * @mem_alloc - (required) allocate memory
+ * @mem_free - (required) free memory
+ * @page_alloc - (optional) allocate page aligned memory
+ * @page_free - (optional) free memory allocated by page_alloc
  *
- * @timer_create - allocate a host timer that runs fn() when the timer
- * fires.
- * @timer_free - disarms and free the timer
- * @timer_set_oneshot - arm the timer to fire once, after delta ns.
+ * @timer_alloc - (optional) allocate a host timer that runs fn() when the
+ * timer fires
+ * @timer_free - (optional) disarms and free the timer
+ * @timer_set_oneshot - (optional) arm the timer to fire once, after delta ns
  *
- * @ioremap - searches for an I/O memory region identified by addr and size and
- * returns a pointer to the start of the address range that can be used by
- * iomem_access
- * @iomem_acess - reads or writes to and I/O memory region; addr must be in the
- * range returned by ioremap
+ * @ioremap - (required) searches for an I/O memory region identified by addr
+ * and size and returns a pointer to the start of the address range that can be
+ * used by iomem_access
+ * @iomem_acess - (required) reads or writes to and I/O memory region; addr must
+ * be in the range returned by ioremap
  *
- * @jmp_buf_set - runs the give function and setups a jump back point by saving
- * the context in the jump buffer; jmp_buf_longjmp can be called from the give
- * function or any callee in that function to return back to the jump back
- * point
+ * @jmp_buf_set - (required) runs the give function and setups a jump back point
+ * by saving the context in the jump buffer; jmp_buf_longjmp can be called from
+ * the give function or any callee in that function to return back to the jump
+ * back point
  *
  * NOTE: we can't return from jmp_buf_set before calling jmp_buf_longjmp or
  * otherwise the saved context (stack) is not going to be valid, so we must pass
  * the function that will eventually call longjmp here
  *
- * @jmp_buf_longjmp - perform a jump back to the saved jump buffer
+ * @jmp_buf_longjmp - (required) perform a jump back to the saved jump buffer
  *
- * @memcpy - copy memory
- * @memset - set memory
+ * @memcpy - (optional) copy memory
+ * @memset - (optional) set memory
  *
- * @mmap - map anonymous memory at the given address with the given size and
- * protection
- * @munmap - unmap previously mapped memory
+ * @mmap - (optional) map anonymous memory at the given address with the given
+ * size and protection
+ * @munmap - (optional) unmap previously mapped memory
  *
- * @pci_ops - pointer to PCI host operations
+ * @pci_ops - (optional) pointer to PCI host operations
  */
 struct lkl_host_operations {
 	const char *virtio_devices;
