@@ -149,15 +149,26 @@ void lkl_cpu_put(void)
 	lkl_ops->mutex_unlock(cpu.lock);
 }
 
-int lkl_cpu_try_run_irq(int irq)
+int lkl_cpu_try_run_irq(void)
 {
 	int ret;
 
 	ret = __cpu_try_get_lock(1);
-	if (!ret) {
-		set_irq_pending(irq);
-		cpu.irqs_pending = true;
+
+	/*
+	 * Since this can be called from Linux context (e.g. lkl_trigger_irq ->
+	 * IRQ -> softirq -> lkl_trigger_irq) make sure we are actually allowed
+	 * to run irqs at this point
+	 */
+	if (ret > 0 && irqs_disabled()) {
+		--cpu.count;
+		if (cpu.count == 0)
+			lkl_bug("%s: irq disabled without owner\n",
+				__func__);
+		ret = 0;
 	}
+	cpu.irqs_pending = (ret <= 0);
+
 	__cpu_try_get_unlock(ret, 1);
 
 	return ret;

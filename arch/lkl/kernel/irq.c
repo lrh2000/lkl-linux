@@ -37,7 +37,7 @@ static inline unsigned long test_and_clear_irq_status(int index)
 	return __sync_fetch_and_and(&irq_status[index], 0);
 }
 
-void set_irq_pending(int irq)
+static void set_irq_pending(int irq)
 {
 	int index = irq / IRQ_STATUS_BITS;
 	int bit = irq % IRQ_STATUS_BITS;
@@ -80,22 +80,13 @@ int lkl_trigger_irq(int irq)
 	if (!irq || irq > NR_IRQS)
 		return -EINVAL;
 
-	ret = lkl_cpu_try_run_irq(irq);
+	set_irq_pending(irq);
+
+	ret = lkl_cpu_try_run_irq();
 	if (ret <= 0)
 		return ret;
 
-	/*
-	 * Since this can be called from Linux context (e.g. lkl_trigger_irq ->
-	 * IRQ -> softirq -> lkl_trigger_irq) make sure we are actually allowed
-	 * to run irqs at this point
-	 */
-	if (!irqs_enabled) {
-		set_irq_pending(irq);
-		lkl_cpu_put();
-		return 0;
-	}
-
-	run_irq(irq);
+	run_irqs();
 
 	lkl_cpu_put();
 

@@ -3,7 +3,7 @@
 
 int lkl_cpu_get(void);
 void lkl_cpu_put(void);
-int lkl_cpu_try_run_irq(int irq);
+int lkl_cpu_try_run_irq(void);
 int lkl_cpu_init(void);
 void lkl_cpu_shutdown(void);
 void lkl_cpu_wait_shutdown(void);
